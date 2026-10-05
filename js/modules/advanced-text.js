@@ -93,10 +93,11 @@
       s4: 'Más allá: control con incertidumbre',
       s4a: 'Hasta aquí el plan ha sido un valor fijo. En la realidad, la duración y el coste de cada actividad son variables. Un SPI(t) de 0,95 puede ser la variabilidad normal del proyecto o el primer aviso de un problema. Los índices deterministas no distinguen ambos casos.',
       s4list: [
-        'Simular el proyecto con Monte Carlo antes de empezar permite saber qué desviaciones de coste y plazo son esperables en cada momento. Así se juzga si la desviación observada es normal o anómala (Acebes et al., 2014).',
-        'Con esas simulaciones, técnicas de aprendizaje estadístico detectan si la desviación se debe a la variabilidad esperada y estiman la probabilidad de terminar en plazo y en presupuesto y la duración y el coste esperados (Acebes et al., 2015).',
-        'El aprendizaje automático explicable relaciona el estado del proyecto con las actividades. Hacia delante, indica qué actividades pesan más en los objetivos, útil para replanificar. Hacia atrás, explica las causas del estado actual (Santos et al., 2023, con valores SHAP).',
-        'Los modelos interpretables (Explainable Boosting Machines) dentro del método Triad complementan esa explicación (Santos et al., 2025).',
+        'Umbrales. El semáforo de esta herramienta usa valores fijos (0,90 y 1): una regla práctica. Con simulación de Monte Carlo se pueden fijar, antes de empezar, límites de tolerancia estadísticos propios de cada proyecto y de cada momento (Acebes et al., 2014; Colin y Vanhoucke, 2014). Vanhoucke (2019) compara los distintos enfoques.',
+        'Previsión probabilística. En lugar de una única fecha prevista, una distribución. Se ha hecho con el filtro de Kalman (Kim y Reinschmidt, 2010) y con modelos de aprendizaje automático entrenados con simulaciones del proyecto (Wauters y Vanhoucke, 2014). El método Triad combina simulación, clasificación, regresión y detección de anomalías para saber si una desviación es esperable y estimar la probabilidad de cumplir plazo y presupuesto (Acebes et al., 2015).',
+        'Lógica difusa y teoría gris. Otra rama representa la incertidumbre con números difusos o grises en lugar de probabilidades (Naeni et al., 2011; Mahmoudi et al., 2021).',
+        'Explicar las desviaciones. El aprendizaje automático explicable relaciona el estado del proyecto con sus actividades: hacia delante, qué actividades pesan más en los objetivos; hacia atrás, qué ha causado el estado actual (Santos et al., 2023, 2025).',
+        'Para orientarse. Vanhoucke (2010) desarrolla la programación ganada y sus previsiones; Willems y Vanhoucke (2015) clasifican la literatura sobre control de proyectos, y Santos et al. (2023) resumen en una tabla las extensiones recientes del valor ganado.',
       ],
       s4refs: 'Para seguir leyendo',
       q4: 'Si tu proyecto tiene un SPI(t) de 0,95, ¿qué necesitarías saber para decidir si actuar?',
@@ -190,10 +191,11 @@
       s4: 'Beyond: control under uncertainty',
       s4a: 'So far the plan has been a fixed value. In reality, the duration and cost of each activity are variable. An SPI(t) of 0.95 can be the project’s normal variability or the first warning of a problem. Deterministic indices cannot tell these apart.',
       s4list: [
-        'Simulating the project with Monte Carlo before it starts tells which cost and schedule deviations are to be expected at each point. That way one can judge whether the observed deviation is normal or anomalous (Acebes et al., 2014).',
-        'With those simulations, statistical learning techniques detect whether the deviation is due to the expected variability and estimate the probability of finishing on time and on budget and the expected duration and cost (Acebes et al., 2015).',
-        'Explainable machine learning links the project status to the activities. Looking forward, it shows which activities weigh most on the objectives, useful for replanning. Looking back, it explains the causes of the current status (Santos et al., 2023, with SHAP values).',
-        'Interpretable models (Explainable Boosting Machines) within the Triad Method complement that explanation (Santos et al., 2025).',
+        'Thresholds. The traffic light in this tool uses fixed values (0.90 and 1): a rule of thumb. With Monte Carlo simulation, statistical tolerance limits specific to each project and each point in time can be set before it starts (Acebes et al., 2014; Colin and Vanhoucke, 2014). Vanhoucke (2019) compares the different approaches.',
+        'Probabilistic forecasting. Instead of a single forecast date, a distribution. This has been done with the Kalman filter (Kim and Reinschmidt, 2010) and with machine learning models trained on simulations of the project (Wauters and Vanhoucke, 2014). The Triad Method combines simulation, classification, regression and anomaly detection to tell whether a deviation is to be expected and to estimate the probability of meeting the deadline and the budget (Acebes et al., 2015).',
+        'Fuzzy logic and grey theory. Another branch represents uncertainty with fuzzy or grey numbers instead of probabilities (Naeni et al., 2011; Mahmoudi et al., 2021).',
+        'Explaining deviations. Explainable machine learning links the project status to its activities: looking forward, which activities weigh most on the objectives; looking back, what caused the current status (Santos et al., 2023, 2025).',
+        'To find your way. Vanhoucke (2010) develops earned schedule and its forecasts; Willems and Vanhoucke (2015) classify the literature on project control, and Santos et al. (2023) summarise the recent extensions of earned value in a table.',
       ],
       s4refs: 'Further reading',
       q4: 'If your project has an SPI(t) of 0.95, what would you need to know to decide whether to act?',
@@ -201,13 +203,21 @@
     },
   };
 
-  // Referencias del apartado 4 (iguales en los dos idiomas).
+  // Referencias del apartado 5 (iguales en los dos idiomas), por orden alfabético. Elegidas a partir de la
+  // revisión de la literatura de Santos et al. (2023, tabla 1), para cubrir los distintos enfoques.
   const REFS = [
     { text: 'Acebes, F., Pajares, J., Galán, J. M., & López-Paredes, A. (2014). A new approach for project control under uncertainty. Going back to the basics. International Journal of Project Management, 32(3), 423–434.', doi: '10.1016/j.ijproman.2013.08.003' },
     { text: 'Acebes, F., Pereda, M., Poza, D. J., Pajares, J., & Galán, J. M. (2015). Stochastic earned value analysis using Monte Carlo simulation and statistical learning techniques. International Journal of Project Management, 33(7), 1597–1609.', doi: '10.1016/j.ijproman.2015.06.012' },
-    { text: 'Acebes, F., Pajares, J., Galán, J. M., & López-Paredes, A. (2015). Exploring the relations between project duration and activity duration. In Project Management and Engineering (pp. 19–30). Springer.', doi: '10.1007/978-3-319-12754-5_2' },
+    { text: 'Colin, J., & Vanhoucke, M. (2014). Setting tolerance limits for statistical project control using earned value management. Omega, 49, 107–122.', doi: '10.1016/j.omega.2014.06.001' },
+    { text: 'Kim, B.-C., & Reinschmidt, K. F. (2010). Probabilistic forecasting of project duration using Kalman filter and the earned value method. Journal of Construction Engineering and Management, 136(8), 834–843.', doi: '10.1061/(ASCE)CO.1943-7862.0000192' },
+    { text: 'Mahmoudi, A., Bagherpour, M., & Javed, S. A. (2021). Grey earned value management: Theory and applications. IEEE Transactions on Engineering Management, 68(6), 1703–1721.', doi: '10.1109/TEM.2019.2920904' },
+    { text: 'Naeni, L. M., Shadrokh, S., & Salehipour, A. (2011). A fuzzy approach for the earned value management. International Journal of Project Management, 29(6), 764–772.', doi: '10.1016/j.ijproman.2010.07.012' },
     { text: 'Santos, J. I., Pereda, M., Ahedo, V., & Galán, J. M. (2023). Explainable machine learning for project management control. Computers & Industrial Engineering, 180, 109261.', doi: '10.1016/j.cie.2023.109261' },
     { text: 'Santos, J. I., Pereda, M., Ahedo, V., & Galán, J. M. (2025). Interpretable machine learning in project management control: An exploration of EBM within the Triad Method. In Organizational Engineering, Coping with Complexity (CIO 2024), LNDECT 239. Springer.', doi: '10.1007/978-3-031-82334-3_18' },
+    { text: 'Vanhoucke, M. (2010). Measuring time: Improving project performance using earned value management. Springer.', doi: '10.1007/978-1-4419-1014-1' },
+    { text: 'Vanhoucke, M. (2019). Tolerance limits for project control: An overview of different approaches. Computers & Industrial Engineering, 127, 467–479.', doi: '10.1016/j.cie.2018.10.035' },
+    { text: 'Wauters, M., & Vanhoucke, M. (2014). Support vector machine regression for project control forecasting. Automation in Construction, 47, 92–106.', doi: '10.1016/j.autcon.2014.07.014' },
+    { text: 'Willems, L. L., & Vanhoucke, M. (2015). Classification of articles and journals on project control and earned value management. International Journal of Project Management, 33(7), 1610–1634.', doi: '10.1016/j.ijproman.2015.06.003' },
   ];
 
   root.PCAdvancedText = { TEXT, REFS };

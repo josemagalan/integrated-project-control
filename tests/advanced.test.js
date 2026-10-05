@@ -81,7 +81,15 @@ test('textos del módulo avanzado: mismas claves en los dos idiomas', () => {
   for (const k of ['stage', 's1Lesson']) assert.deepEqual(keys(T.es[k]), keys(T.en[k]));
   assert.deepEqual(keys(T.es.s1Lesson.critical), keys(T.en.s1Lesson.critical));
   assert.equal(T.es.s4list.length, T.en.s4list.length);
-  assert.equal(AT.REFS.length, 5);
+  assert.equal(AT.REFS.length, 12);
+  // Cada cita del texto del apartado 5 está en la lista de referencias, y cada referencia se cita.
+  const surname = (r) => r.text.split(',')[0];
+  for (const lang of ['es', 'en']) {
+    const txt = T[lang].s4list.join(' ');
+    for (const r of AT.REFS) assert.ok(txt.includes(surname(r)), `${lang}: ${surname(r)}`);
+  }
+  const ours = AT.REFS.filter((r) => /Galán/.test(r.text)).length;
+  assert.ok(ours <= AT.REFS.length / 3, 'la lista no debe estar dominada por trabajos propios');
 });
 
 test('laboratorio: acortar una actividad crítica adelanta el final una semana; la no crítica, no', () => {
