@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>Control integrado de proyectos · Valor ganado, programación ganada y duración ganada</title>
+  <meta name="description" content="Herramienta docente interactiva: valor ganado (EVM), programación ganada (ES) y duración ganada (EDM) sobre el mismo proyecto. Interactive teaching tool: earned value, earned schedule and earned duration on the same project.">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="wrap">
+    <header class="topbar">
+      <a class="brand" href="#v=home">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span data-i18n="brand">Control integrado de proyectos</span>
+      </a>
+      <nav class="modnav" aria-label="Módulos" id="modnav">
+        <a href="#v=evm" data-v="evm" data-i18n="modEvmTitle">Valor ganado</a>
+        <a href="#v=es" data-v="es" data-i18n="modEsTitle">Programación ganada</a>
+        <a href="#v=edm" data-v="edm" data-i18n="modEdmTitle">Duración ganada</a>
+        <a href="#v=compare" data-v="compare" data-i18n="modCompareTitle">Comparativa</a>
+        <a href="#v=practice" data-v="practice" data-i18n="modPracticeTitle">Práctica</a>
+        <a href="#v=adv" data-v="adv" class="nav-adv" data-i18n="modAdvTitle">Para profundizar</a>
+      </nav>
+      <div class="lang" role="group" aria-label="Idioma / Language">
+        <button type="button" data-lang="es" aria-pressed="true">ES</button>
+        <button type="button" data-lang="en" aria-pressed="false">EN</button>
+      </div>
+    </header>
+
+    <main id="homeView" hidden>
+      <section class="hero">
+        <p class="eyebrow" data-i18n="eyebrow">Herramienta docente</p>
+        <h1 data-i18n="homeTitle">Control integrado de proyectos</h1>
+        <p class="lead" data-i18n="homeLead"></p>
+      </section>
+      <div class="mod-grid">
+        <a class="mod-card" data-v="evm" href="#v=evm" style="--k: var(--c-evm)"><span class="mod-key"></span><h2 data-i18n="modEvmTitle"></h2><p data-i18n="modEvmSub"></p><span class="mod-go" data-i18n="homeOpen"></span></a>
+        <a class="mod-card" data-v="es" href="#v=es" style="--k: var(--c-es)"><span class="mod-key"></span><h2 data-i18n="modEsTitle"></h2><p data-i18n="modEsSub"></p><span class="mod-go" data-i18n="homeOpen"></span></a>
+        <a class="mod-card" data-v="edm" href="#v=edm" style="--k: var(--c-edm)"><span class="mod-key"></span><h2 data-i18n="modEdmTitle"></h2><p data-i18n="modEdmSub"></p><span class="mod-go" data-i18n="homeOpen"></span></a>
+        <a class="mod-card" data-v="compare" href="#v=compare" style="--k: var(--c-plan)"><span class="mod-key"></span><h2 data-i18n="modCompareTitle"></h2><p data-i18n="modCompareSub"></p><span class="mod-go" data-i18n="homeOpen"></span></a>
+        <a class="mod-card" data-v="practice" href="#v=practice" style="--k: var(--ink)"><span class="mod-key"></span><h2 data-i18n="modPracticeTitle"></h2><p data-i18n="modPracticeSub"></p><span class="mod-go" data-i18n="homeOpen"></span></a>
+      </div>
+      <section class="adv-home" aria-labelledby="advHomeTitle">
+        <h2 id="advHomeTitle" data-i18n="homeAdvTitle">Cuando domines lo básico</h2>
+        <div class="mod-grid">
+          <a class="mod-card mod-adv" data-v="adv" href="#v=adv" style="--k: var(--muted)"><span class="mod-key"></span><h2 data-i18n="modAdvTitle"></h2><p data-i18n="modAdvSub"></p><span class="mod-go" data-i18n="homeOpen"></span></a>
+        </div>
+      </section>
+      <section class="card how">
+        <h2 data-i18n="homeHowTitle">Cómo se usa</h2>
+        <ol>
+          <li data-i18n="homeHow1"></li>
+          <li data-i18n="homeHow2"></li>
+          <li data-i18n="homeHow3"></li>
+        </ol>
+      </section>
+    </main>
+
+    <main id="moduleView" hidden>
+      <section class="hero">
+        <p class="eyebrow" data-i18n="eyebrow">Herramienta docente</p>
+        <h1 id="modTitle"></h1>
+        <p class="lead" id="modLead"></p>
+      </section>
+      <section class="card editor" id="editor"></section>
+      <div id="modBody"></div>
+    </main>
+
+    <main id="practiceView" hidden>
+      <section class="hero">
+        <p class="eyebrow" data-i18n="eyebrow">Herramienta docente</p>
+        <h1 data-i18n="modPracticeTitle">Práctica</h1>
+        <p class="lead" data-i18n="modPracticeLead"></p>
+      </section>
+      <div id="practiceBody"></div>
+    </main>
+
+    <main id="advView" hidden>
+      <section class="hero">
+        <p class="eyebrow" data-i18n="eyebrowAdv">Herramienta docente · nivel avanzado</p>
+        <h1 data-i18n="modAdvTitle">Para profundizar</h1>
+        <p class="lead" data-i18n="modAdvLead"></p>
+      </section>
+      <div id="advBody"></div>
+    </main>
+
+    <main id="compareView" hidden>
+      <section class="hero">
+        <p class="eyebrow" data-i18n="eyebrow">Herramienta docente</p>
+        <h1 data-i18n="modCompareTitle">Comparativa en el tiempo</h1>
+        <p class="lead" data-i18n="modCompareLead"></p>
+      </section>
+
+      <section class="card controls" aria-label="Controles">
+        <div class="field">
+          <label for="projectSel" data-i18n="project">Proyecto</label>
+          <select id="projectSel"></select>
+        </div>
+        <div class="field at-field">
+          <label for="atRange" data-i18n="statusDate">Fecha de control (AT)</label>
+          <div class="at-row">
+            <button type="button" class="btn" id="prevBtn" data-i18n-aria="prev" aria-label="Semana anterior">←</button>
+            <input type="range" id="atRange" min="1" max="10" step="1" value="1">
+            <button type="button" class="btn" id="nextBtn" data-i18n-aria="next" aria-label="Semana siguiente">→</button>
+            <button type="button" class="btn primary" id="playBtn" data-i18n="play">Reproducir</button>
+            <output id="atOut" for="atRange"></output>
+          </div>
+        </div>
+        <p class="summary" id="summary"></p>
+      </section>
+
+      <p class="lesson" id="lesson"><strong data-i18n="lessonTitle">Qué mirar</strong><span id="lessonText"></span></p>
+
+      <section class="tiles" id="tiles" aria-live="polite"></section>
+
+      <section class="card">
+        <h2 data-i18n="ganttTitle">Plan y avance real</h2>
+        <p class="sub" data-i18n="ganttSub"></p>
+        <ul class="legend" id="ganttLegend"></ul>
+        <div class="chart" id="ganttChart"></div>
+      </section>
+
+      <div class="grid-2">
+        <section class="card">
+          <h2 data-i18n="costTitle">Curvas S de coste</h2>
+          <p class="sub" data-i18n="costSub"></p>
+          <ul class="legend" id="costLegend"></ul>
+          <div class="chart" id="costChart"></div>
+        </section>
+        <section class="card">
+          <h2 data-i18n="durTitle">Curvas de duración (EDM)</h2>
+          <p class="sub" data-i18n="durSub"></p>
+          <ul class="legend" id="durLegend"></ul>
+          <div class="chart" id="durChart"></div>
+        </section>
+      </div>
+
+      <div class="grid-2">
+        <section class="card">
+          <h2 data-i18n="idxTitle">Índices de plazo</h2>
+          <p class="sub" data-i18n="idxSub"></p>
+          <ul class="legend" id="idxLegend"></ul>
+          <div class="chart" id="idxChart"></div>
+          <ul class="legend status-legend" id="idxStatus"></ul>
+        </section>
+        <section class="card">
+          <h2 data-i18n="fcTitle">Previsión de la duración final</h2>
+          <p class="sub" data-i18n="fcSub"></p>
+          <div class="seg" role="group" id="pfSeg" aria-labelledby="pfLabel">
+            <span id="pfLabel" class="sr-only" data-i18n="pfLabel">Factor de rendimiento</span>
+            <button type="button" data-pf="index" aria-pressed="true" data-i18n="pfIndex"></button>
+            <button type="button" data-pf="pf1" aria-pressed="false" data-i18n="pf1"></button>
+          </div>
+          <ul class="legend" id="fcLegend"></ul>
+          <div class="chart" id="fcChart"></div>
+        </section>
+      </div>
+
+      <section class="card">
+        <h2 id="stepsTitle"></h2>
+        <p class="sub" data-i18n="stepsSub"></p>
+        <div class="seg steps-tabs" role="tablist" id="stepsTabs"></div>
+        <div class="steps" id="steps" role="tabpanel"></div>
+      </section>
+
+      <section class="card">
+        <h2 data-i18n="tableTitle">Tabla de datos</h2>
+        <p class="sub" data-i18n="tableSub"></p>
+        <button type="button" class="btn" id="tableBtn" aria-expanded="false" aria-controls="tableWrap" data-i18n="showTable">Mostrar tabla</button>
+        <div class="table-wrap" id="tableWrap" hidden></div>
+      </section>
+    </main>
+
+    <main id="aboutView" hidden>
+      <a class="back" href="#v=home" data-back><span aria-hidden="true">←</span> <span data-i18n="backHome">Volver al inicio</span></a>
+      <article class="card about" id="aboutBody"></article>
+    </main>
+
+    <main id="moodleView" hidden>
+      <a class="back" href="#v=home" data-back><span aria-hidden="true">←</span> <span data-i18n="backHome">Volver al inicio</span></a>
+      <article class="card about moodle" id="moodleBody"></article>
+    </main>
+
+    <section class="card" id="refs">
+      <h2 data-i18n="refsTitle">Referencias</h2>
+      <ol class="refs">
+        <li>Anbari, F. T. (2003). Earned value project management method and extensions. <em>Project Management Journal</em>, 34(4), 12–23.</li>
+        <li>Jacob, D. (2003). Forecasting project schedule completion with earned value metrics. <em>The Measurable News</em>, March, 7–9.</li>
+        <li>Lipke, W. (2003). Schedule is different. <em>The Measurable News</em>, Summer, 31–34.</li>
+        <li>Lipke, W. (2004). Connecting earned value to the schedule. <em>The Measurable News</em>, Winter.</li>
+        <li>Vandevoorde, S., &amp; Vanhoucke, M. (2006). A comparison of different project duration forecasting methods using earned value metrics. <em>International Journal of Project Management</em>, 24(4), 289–302.</li>
+        <li>Khamooshi, H., &amp; Golafshani, H. (2014). EDM: Earned Duration Management, a new approach to schedule performance management and measurement. <em>International Journal of Project Management</em>, 32(6), 1019–1041.</li>
+        <li>Project Management Institute (2019). <em>The Standard for Earned Value Management</em>. PMI.</li>
+      </ol>
+    </section>
+
+    <footer class="site-foot" id="siteFoot"></footer>
+  </div>
+
+  <script src="vendor/d3.min.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/format.js"></script>
+  <script src="js/core/engine.js"></script>
+  <script src="js/core/examples.js"></script>
+  <script src="js/charts/common.js"></script>
+  <script src="js/charts/gantt.js"></script>
+  <script src="js/charts/lines.js"></script>
+  <script src="js/narration.js"></script>
+  <script src="js/core/project.js"></script>
+  <script src="js/ui/editor.js"></script>
+  <script src="js/modules/ui-kit.js"></script>
+  <script src="js/modules/evm-text.js"></script>
+  <script src="js/modules/evm.js"></script>
+  <script src="js/modules/es-text.js"></script>
+  <script src="js/modules/es.js"></script>
+  <script src="js/modules/edm-text.js"></script>
+  <script src="js/modules/edm.js"></script>
+  <script src="js/core/practice.js"></script>
+  <script src="js/modules/practice-text.js"></script>
+  <script src="js/modules/practice.js"></script>
+  <script src="js/core/advanced.js"></script>
+  <script src="js/modules/advanced-text.js"></script>
+  <script src="js/modules/advanced.js"></script>
+  <script src="js/modules/compare.js"></script>
+  <script src="js/about.js"></script>
+  <script src="js/moodle.js"></script>
+  <script src="js/modules/moodle-page.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

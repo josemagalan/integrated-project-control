@@ -1,0 +1,11 @@
+{
+  "name": "control-integrado-proyectos",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Interactive teaching tool (D3.js) for integrated project control: earned value, earned schedule and earned duration",
+  "scripts": {
+    "test": "node --test tests/*.test.js"
+  },
+  "license": "(MIT AND CC-BY-4.0)",
+  "author": "José Manuel Galán"
+}
