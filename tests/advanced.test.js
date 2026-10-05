@@ -79,6 +79,54 @@ test('textos del módulo avanzado: mismas claves en los dos idiomas', () => {
   const keys = (o) => Object.keys(o).sort();
   assert.deepEqual(keys(T.es), keys(T.en));
   for (const k of ['stage', 's1Lesson']) assert.deepEqual(keys(T.es[k]), keys(T.en[k]));
+  assert.deepEqual(keys(T.es.s1Lesson.critical), keys(T.en.s1Lesson.critical));
   assert.equal(T.es.s4list.length, T.en.s4list.length);
   assert.equal(AT.REFS.length, 5);
+});
+
+test('laboratorio: acortar una actividad crítica adelanta el final una semana; la no crítica, no', () => {
+  for (let d = 0; d <= 3; d++) {
+    for (let s = 0; s <= 3; s++) {
+      const base = A.criticalScenario(d, s);
+      for (let at = 1; at < base.RD; at++) {
+        const can = A.crashable(d, s, at);
+        for (const id of ['A', 'B', 'C', 'D']) {
+          if (can[id] !== true) {
+            // Una intervención imposible se ignora.
+            assert.equal(A.criticalScenario(d, s, { id, at }).crash, null);
+            continue;
+          }
+          const sc = A.criticalScenario(d, s, { id, at });
+          assert.deepEqual(E.validateProject(sc.project), [], `${d} ${s} ${at} ${id}`);
+          assert.equal(sc.RD, base.RD - (id === 'C' ? 0 : 1), `${d} ${s} ${at} ${id}`);
+          assert.equal(E.actualDuration(sc.project), sc.RD);
+          // El pasado no cambia y el coste extra es el de la tabla (± redondeo).
+          for (let t = 1; t <= at; t++) {
+            close(E.ev(sc.project, t), E.ev(base.project, t));
+            close(E.ac(sc.project, t), E.ac(base.project, t));
+          }
+          close(E.ac(sc.project, sc.RD) - E.ac(base.project, base.RD), A.CRASH_COST[id], 3);
+        }
+      }
+    }
+  }
+});
+
+test('laboratorio, caso por defecto: la fabricación es la más barata y la que más sube el SPI(t), pero no gana plazo', () => {
+  const base = A.criticalScenario(2, 1);
+  const can = A.crashable(2, 1, 2);
+  assert.deepEqual(can, { A: true, B: true, C: true, D: true });
+  const spit = (p) => E.metricsAt(p, 3).SPIt;
+  const res = Object.fromEntries(['A', 'B', 'C', 'D'].map((id) => [id, A.criticalScenario(2, 1, { id, at: 2 })]));
+  assert.equal(res.C.RD, base.RD);
+  for (const id of ['A', 'B', 'D']) assert.ok(spit(res.C.project) > spit(res[id].project), id);
+  assert.ok(A.CRASH_COST.C < Math.min(A.CRASH_COST.A, A.CRASH_COST.B, A.CRASH_COST.D));
+});
+
+test('error con signo: |sgn| = err y el sesgo es negativo en la trampa (previsiones optimistas)', () => {
+  const r = A.forecastErrors(A.criticalScenario(2, 1).project);
+  for (const row of r.rows) for (const k of ['pv', 'ed', 'es', 'edm']) close(Math.abs(row.sgn[k]), row.err[k]);
+  for (const k of ['pv', 'ed', 'es', 'edm']) assert.ok(r.bias.early[k] < 0, k);
+  const none = A.forecastErrors(A.criticalScenario(0, 0).project);
+  for (const k of ['pv', 'ed', 'es', 'edm']) close(none.mape.all[k], 0);
 });

@@ -480,3 +480,18 @@ label.check { display: inline-flex; align-items: center; gap: 4px; font-size: 14
 .adv-n { display: block; font-weight: 400; color: var(--muted); font-size: 12px; }
 .pr-mistake { display: block; font-weight: 400; color: var(--ink); margin-top: 2px; }
 .pr-why { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
+.adv-net-box { margin: 4px 0 12px; max-width: 520px; }
+.adv-net { width: 100%; height: auto; display: block; }
+.adv-net rect { fill: var(--card); stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 4 3; }
+.adv-net .crit rect { stroke: var(--ink); stroke-width: 2; stroke-dasharray: none; }
+.adv-net text { fill: var(--ink); font-size: 13px; }
+.adv-net text.id { font-weight: 700; font-size: 15px; }
+.adv-net text.sub { fill: var(--muted); font-size: 12px; }
+.adv-net-edge { fill: none; stroke: var(--muted); stroke-width: 1.4; stroke-dasharray: 4 3; }
+.adv-net-edge.crit { stroke: var(--ink); stroke-width: 2.2; stroke-dasharray: none; }
+.adv-net-head { fill: var(--muted); }
+.adv-lab label.check { display: block; margin: 4px 0; }
+.adv-lab input:disabled + * , .adv-lab label:has(input:disabled) { color: var(--muted); }
+.adv-status { font-weight: 600; }
+.adv-result .figures { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 560px) { .adv-result .figures { grid-template-columns: 1fr 1fr; } }

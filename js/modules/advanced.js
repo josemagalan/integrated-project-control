@@ -1,7 +1,7 @@
 /*
  * Módulo «Para profundizar»: precisión de las previsiones, camino crítico, factor P de Lipke y
  * control con incertidumbre. Usa los ejemplos con historial y su propio escenario; no usa el
- * editor del proyecto. El estado va en la URL (e1, d, s, cat, e3, at3).
+ * editor del proyecto. El estado va en la URL (e1, err, d, s, cat, xat, e3, at3).
  */
 (function (root) {
   'use strict';
@@ -11,11 +11,12 @@
   const K = root.PCKit;
   const A = root.PCAdvanced;
   const P = root.PCProject;
-  const COL = { pv: 'var(--c-evm)', ed: 'var(--c-jacob)', es: 'var(--c-es)', edm: 'var(--c-edm)', plan: 'var(--c-plan)', ink: 'var(--ink)' };
+  const COL = { ac: 'var(--c-ac)', pv: 'var(--c-evm)', ed: 'var(--c-jacob)', es: 'var(--c-es)', edm: 'var(--c-edm)', plan: 'var(--c-plan)', ink: 'var(--ink)' };
   const EXAMPLES = ['late', 'ahead', 'decoupled', 'critical'];
   const LIM = A.SCEN_LIMITS;
 
-  const S = { e1: 'late', d: 2, s: 1, cat: 3, e3: 'critical', at3: 3 };
+  const S = { e1: 'late', err: 'abs', d: 2, s: 1, cat: 3, xat: 2, x: null, e3: 'critical', at3: 3 };
+  const CRASH_IDS = ['A', 'B', 'C', 'D'];
 
   function setFromHash(h) {
     const int = (k, lo, hi) => { const v = parseInt(h.get(k), 10); return Number.isInteger(v) && v >= lo && v <= hi ? v : null; };
@@ -25,10 +26,50 @@
     const s = int('s', LIM.speed[0], LIM.speed[1]); if (s !== null) S.s = s;
     const cat = int('cat', 1, 99); if (cat !== null) S.cat = cat;
     const at3 = int('at3', 1, 99); if (at3 !== null) S.at3 = at3;
+    const xat = int('xat', 1, 99); if (xat !== null) S.xat = xat;
+    if (['abs', 'sgn'].includes(h.get('err'))) S.err = h.get('err');
+    S.x = null; // la elección del laboratorio no va en la URL: quien abre el enlace elige antes de ver el resultado
   }
-  const params = () => ({ e1: S.e1, d: S.d, s: S.s, cat: S.cat, e3: S.e3, at3: S.at3 });
+  const params = () => ({ e1: S.e1, err: S.err, d: S.d, s: S.s, cat: S.cat, xat: S.xat, e3: S.e3, at3: S.at3 });
 
   const projectFor = (id) => (id === 'critical' ? A.criticalScenario(S.d, S.s).project : P.fromExample(id));
+
+  /** Red de precedencias (actividad en el nodo): camino crítico con trazo continuo. */
+  function netDiagram(L, sc) {
+    const NS = 'http://www.w3.org/2000/svg';
+    const mk = (tag, attrs, text) => {
+      const n = document.createElementNS(NS, tag);
+      for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+      if (text !== undefined) n.textContent = text;
+      return n;
+    };
+    const W = 130; const H = 44;
+    const pos = { A: [8, 10], B: [176, 10], D: [344, 10], C: [176, 84] };
+    const svg = mk('svg', { viewBox: '0 0 482 138', role: 'img', 'aria-label': L.netAria, class: 'adv-net' });
+    const defs = mk('defs', {});
+    const mark = mk('marker', { id: 'advArrow', viewBox: '0 0 10 10', refX: '9', refY: '5', markerWidth: '7', markerHeight: '7', orient: 'auto-start-reverse' });
+    mark.append(mk('path', { d: 'M0,0 L10,5 L0,10 z', class: 'adv-net-head' }));
+    defs.append(mark); svg.append(defs);
+    const edge = (a, b, crit) => {
+      const [ax, ay] = pos[a]; const [bx, by] = pos[b];
+      const d = ay === by ? `M${ax + W},${ay + H / 2} H${bx - 2}` : `M${ax + W},${ay + H / 2} H${bx - 24} V${by + H - 2} H${bx - 2}`;
+      svg.append(mk('path', { d, class: `adv-net-edge${crit ? ' crit' : ''}`, 'marker-end': 'url(#advArrow)' }));
+    };
+    edge('A', 'B', true); edge('B', 'D', true); edge('C', 'D', false);
+    for (const a of sc.project.activities) {
+      const [x, y] = pos[a.id];
+      const crit = sc.critical.includes(a.id);
+      const g = mk('g', { class: `adv-net-node${crit ? ' crit' : ''}` });
+      g.append(mk('rect', { x, y, width: W, height: H, rx: 7 }));
+      g.append(mk('text', { x: x + 10, y: y + 19, class: 'id' }, a.id));
+      g.append(mk('text', { x: x + 10, y: y + 35, class: 'sub' }, `${a.duration} ${L.wk}${crit ? '' : ` · ${L.slackShort} ${sc.slack[a.id]}`}`));
+      g.append(mk('text', { x: x + W - 10, y: y + 19, class: 'star', 'text-anchor': 'end' }, crit ? '★' : ''));
+      svg.append(g);
+    }
+    const box = K.el('div', 'adv-net-box');
+    box.append(svg, K.el('p', 'f-note', L.netLegend));
+    return box;
+  }
 
   function create(container, ctx) {
     // ctx: { t, lang(), onChange() }
@@ -88,52 +129,74 @@
       // ---- 1. Precisión de las previsiones
       const p1 = projectFor(S.e1);
       const fe = A.forecastErrors(p1);
+      const signed = S.err === 'sgn';
       const c1 = K.chartBox();
       const leg1 = K.el('ul', 'legend');
-      const s1 = [K.p(L.s1a), K.formulas(...L.s1Methods),
-        K.el('div', 'controls adv-controls'),
-      ];
-      s1[2].append(select('advE1', L.project, S.e1, exOptions, (v) => change({ e1: v }, 'advE1')));
+      const ctl1 = K.el('div', 'controls adv-controls');
+      ctl1.append(select('advE1', L.project, S.e1, exOptions, (v) => change({ e1: v }, 'advE1')));
+      const seg = K.el('div', 'field');
+      const segLab = K.el('span', 'label', L.errMode); segLab.id = 'advErrLab';
+      const segBox = K.el('div', 'seg'); segBox.setAttribute('role', 'group'); segBox.setAttribute('aria-labelledby', 'advErrLab');
+      for (const [k, txt] of [['abs', L.errAbs], ['sgn', L.errSgn]]) {
+        const b = K.el('button', null, txt); b.type = 'button'; b.id = `advErr-${k}`;
+        b.setAttribute('aria-pressed', String(S.err === k));
+        b.addEventListener('click', () => change({ err: k }, `advErr-${k}`));
+        segBox.append(b);
+      }
+      seg.append(segLab, segBox);
+      ctl1.append(seg);
+      const s1 = [K.p(L.s1a), K.formulas(...L.s1Methods), ctl1];
       if (!fe) s1.push(K.p(L.noForecast));
       else {
+        if (signed) s1.push(K.p(L.sgnNote));
         s1.push(leg1, c1);
         const tbl = K.el('table', 'mini-table cmp adv-table');
-        tbl.append(K.el('caption', null, L.s1Table));
+        tbl.append(K.el('caption', null, signed ? L.s1TableSgn : L.s1Table));
         const hr = tbl.createTHead().insertRow();
         for (const h of ['', ...A.METHODS.map((m) => methodShort[m.key])]) hr.append(K.el('th', null, h));
         const tb = tbl.createTBody();
+        const src = signed ? fe.bias : fe.mape;
+        const pctTxt = (v) => (v === null ? '—' : `${signed && v > 0.05 ? '+' : ''}${F.num(lang, v, 1)} %`);
         for (const st of ['early', 'middle', 'late', 'all']) {
           const row = tb.insertRow();
-          const mp = fe.mape[st];
-          const c0 = row.insertCell(); c0.append(K.el('span', null, L.stage[st]), K.el('small', 'adv-n', `${mp.n} ${L.periods}`));
-          const vals = A.METHODS.map((m) => mp[m.key]).filter((v) => v !== null);
+          const mp = src[st];
+          const c0 = row.insertCell(); c0.append(K.el('span', null, L.stage[st]), K.el('small', 'adv-n', L.weeksN(mp.n)));
+          const vals = A.METHODS.map((m) => fe.mape[st][m.key]).filter((v) => v !== null);
           const best = vals.length ? Math.min(...vals) : null;
           for (const m of A.METHODS) {
-            const v = mp[m.key];
             const c = row.insertCell();
-            c.textContent = v === null ? '—' : `${F.num(lang, v, 1)} %`;
-            if (v !== null && best !== null && v - best < 0.05) { c.className = 'adv-best'; c.title = L.best; c.textContent += ' ✓'; }
+            c.textContent = pctTxt(mp[m.key]);
+            const a = fe.mape[st][m.key];
+            if (!signed && a !== null && best !== null && a - best < 0.05) { c.className = 'adv-best'; c.title = L.best; c.textContent += ' ✓'; }
           }
         }
         const tw = K.el('div', 'table-wrap'); tw.append(tbl);
-        s1.push(tw, K.aside(null, [K.p(L.s1Lesson[S.e1])]), K.p(L.s1b), think(L, L.q1, L.a1));
+        const lesson = S.e1 === 'critical'
+          ? L.s1Lesson.critical[S.d === 0 ? (S.s === 0 ? 'none' : 'ahead') : (S.s === 0 ? 'delay' : 'trap')]
+          : L.s1Lesson[S.e1];
+        s1.push(tw, K.aside(null, [K.p(lesson)]), K.p(L.s1b), think(L, L.q1, L.a1));
         charts.push(() => {
           root.PCCharts.legend(leg1, A.METHODS.map((m) => ({ label: `${methodShort[m.key]} · ${methodLabel[m.key]}`, color: COL[m.key] })));
-          const all = fe.rows.flatMap((r) => A.METHODS.map((m) => r.err[m.key])).filter((v) => v !== null);
-          const top = Math.min(100, Math.max(10, ...all) * 1.1);
+          const key = signed ? 'sgn' : 'err';
+          const all = fe.rows.flatMap((r) => A.METHODS.map((m) => r[key][m.key])).filter((v) => v !== null);
+          const lim = Math.min(100, Math.max(10, ...all.map(Math.abs)) * 1.1);
+          const yMin = signed ? -lim : 0;
+          const clampY = (v) => (v === null ? null : Math.max(yMin, Math.min(lim, v)));
           const widths = { ed: 7, edm: 5, pv: 2, es: 2 };
           root.PCLines.render(c1, {
-            height: 280, xMax: fe.RD, yMin: 0, yMax: top, yFormat: (v) => `${F.num(lang, v, 0)} %`,
+            height: 280, xMax: fe.RD, yMin, yMax: lim,
+            yFormat: (v) => `${signed && v > 0 ? '+' : ''}${F.num(lang, v, 0)} %`,
             ariaLabel: L.s1Aria, xAxisTitle: t(`unit_${p1.unit}`),
             series: ['ed', 'edm', 'pv', 'es'].map((k) => ({
               key: k, color: COL[k], width: widths[k], endLabel: methodShort[k],
-              points: fe.rows.map((r) => ({ x: r.AT, y: r.err[k] === null ? null : Math.min(r.err[k], top) })),
+              points: fe.rows.map((r) => ({ x: r.AT, y: clampY(r[key][k]) })),
             })),
+            refY: signed ? [{ y: 0, label: '0' }] : [],
             refX: fe.PD < fe.RD ? [{ x: fe.PD, label: 'PD' }] : [],
             xHoverMin: 1, xHoverMax: fe.RD - 1,
             tooltip: {
               title: (x) => `${t(`unitOne_${p1.unit}`)} ${x} · ${F.pct(lang, fe.rows[x - 1].pc)}`,
-              rows: (x) => ['pv', 'ed', 'es', 'edm'].map((k) => ({ label: `${methodShort[k]} = ${n2(fe.rows[x - 1].f[k])}`, color: COL[k], value: `${F.num(lang, fe.rows[x - 1].err[k], 1)} %` })),
+              rows: (x) => ['pv', 'ed', 'es', 'edm'].map((k) => ({ label: `${methodShort[k]} = ${n2(fe.rows[x - 1].f[k])}`, color: COL[k], value: pctTxt(fe.rows[x - 1][key][k]) })),
             },
           });
         });
@@ -160,8 +223,8 @@
       }
       const ctl = K.el('div', 'controls adv-controls');
       ctl.append(
-        range('advD', L.delay, S.d, LIM.delay[0], LIM.delay[1], L.weeksN, (v) => change({ d: v }, 'advD')),
-        range('advS', L.speed, S.s, LIM.speed[0], LIM.speed[1], L.weeksN, (v) => change({ s: v }, 'advS')),
+        range('advD', L.delay, S.d, LIM.delay[0], LIM.delay[1], L.weeksN, (v) => change({ d: v, x: null }, 'advD')),
+        range('advS', L.speed, S.s, LIM.speed[0], LIM.speed[1], L.weeksN, (v) => change({ s: v, x: null }, 'advS')),
         range('advAT', L.at, cat, 1, sc.RD, (v) => `AT = ${v}`, (v) => change({ cat: v }, 'advAT')),
       );
       const g2 = K.chartBox();
@@ -174,6 +237,7 @@
       else msg = fill(L.seen, { v: n3(m2.SPIt) });
       container.append(K.step(2, L.s2, [
         K.p(L.s2a),
+        netDiagram(L, sc),
         (() => { const w = K.el('div', 'table-wrap'); w.append(net); return w; })(),
         ctl,
         g2,
@@ -208,7 +272,69 @@
         });
       });
 
-      // ---- 3. Factor P
+      // ---- 3. Laboratorio de decisiones
+      const xat = Math.max(1, Math.min(sc.RD - 1, S.xat));
+      const can = A.crashable(sc.delay, sc.speed, xat);
+      const mx = E.metricsAt(sc.project, xat);
+      const lab = [
+        K.p(fill(L.labA, { d: L.weeksN(sc.delay), s: L.weeksN(sc.speed) })),
+      ];
+      const ctlx = K.el('div', 'controls adv-controls');
+      ctlx.append(range('advXat', L.labWeek, xat, 1, sc.RD - 1, (v) => `AT = ${v}`, (v) => change({ xat: v, x: null }, 'advXat')));
+      lab.push(ctlx, K.p(fill(L.labStatus, { at: xat, spit: n3(mx.SPIt), rd: sc.RD, pd: sc.PD }), 'step-p adv-status'));
+      const fs = K.el('fieldset', 'pr-choice adv-lab');
+      fs.append(K.el('legend', null, L.labChoose));
+      const nameOf = (id) => `${id} · ${sc.project.activities.find((a) => a.id === id).name[lang]}`;
+      let picked = S.x;
+      for (const id of CRASH_IDS.concat('none')) {
+        const lb = K.el('label', 'check');
+        const r = K.el('input'); r.type = 'radio'; r.name = 'advX'; r.value = id; r.id = `advX-${id}`;
+        r.checked = picked === id;
+        const ok = id === 'none' || can[id] === true;
+        r.disabled = !ok || S.x !== null;
+        r.addEventListener('change', () => { picked = id; apply.disabled = false; });
+        const crit = sc.critical.includes(id);
+        const txt = id === 'none' ? L.labNone
+          : `${nameOf(id)}${crit ? ' ★' : ''} — ${ok ? fill(L.labCost, { c: money(A.CRASH_COST[id]) }) : (can[id] === 'done' ? L.labDone : L.labShort)}`;
+        lb.append(r, document.createTextNode(` ${txt}`));
+        fs.append(lb);
+      }
+      lab.push(fs);
+      const apply = K.el('button', 'btn primary', L.labApply); apply.type = 'button'; apply.id = 'advApply';
+      apply.disabled = picked === null;
+      apply.addEventListener('click', () => { if (picked) change({ x: picked }, 'advAgain'); });
+      const again = K.el('button', 'btn', L.labAgain); again.type = 'button'; again.id = 'advAgain';
+      again.addEventListener('click', () => change({ x: null }, 'advX-none'));
+      const res = K.el('div', 'adv-result'); res.setAttribute('role', 'status');
+      if (S.x === null) {
+        lab.push(K.aside(null, [K.p(L.labPredict)]));
+        const row = K.el('div', 'btn-row'); row.append(apply); lab.push(row);
+      } else {
+        const after = S.x === 'none' ? sc : A.criticalScenario(sc.delay, sc.speed, { id: S.x, at: xat });
+        const w = Math.min(xat + 1, after.RD);
+        const spitB = E.metricsAt(sc.project, Math.min(w, sc.RD)).SPIt;
+        const spitA = E.metricsAt(after.project, w).SPIt;
+        const cost = S.x === 'none' ? 0 : A.CRASH_COST[S.x];
+        res.append(K.figures([
+          { label: L.labFinal, value: after.RD === sc.RD ? String(sc.RD) : `${sc.RD} → ${after.RD}`, note: `PD = ${sc.PD}`, color: COL.ink },
+          { label: L.labExtra, value: money(cost), color: COL.ac },
+          { label: fill(L.labSpit, { w }), value: Math.abs(spitA - spitB) < 0.0005 ? n3(spitA) : `${n3(spitB)} → ${n3(spitA)}`, color: COL.es },
+        ]));
+        let expl;
+        if (S.x === 'none') expl = [fill(L.labNoAct, { rd: sc.RD })];
+        else if (sc.critical.includes(S.x)) {
+          expl = [fill(L.labCrit, { name: nameOf(S.x), rd: after.RD, c: money(cost) })];
+          if (Math.abs(spitA - spitB) < 0.01) expl.push(L.labCritLater);
+        } else expl = [fill(L.labNonCrit, { name: nameOf(S.x), a: n3(spitB), b: n3(spitA), rd: after.RD, c: money(cost) })];
+        res.append(K.aside(null, expl.map((x) => K.p(x))));
+        const row = K.el('div', 'btn-row'); row.append(again);
+        lab.push(res, row);
+      }
+      // La pregunta da una pista del resultado: solo aparece después de elegir.
+      if (S.x !== null) lab.push(think(L, L.q5, L.a5));
+      container.append(K.step(3, L.s3lab, lab));
+
+      // ---- 4. Factor P
       const p3 = projectFor(S.e3);
       const N3 = E.reportedPeriods(p3);
       const at3 = Math.max(1, Math.min(N3, S.at3));
@@ -235,7 +361,7 @@
       const tw3 = K.el('div', 'table-wrap'); tw3.append(pt);
       const c3 = K.chartBox();
       const pTxt = pf.P === null ? '' : pf.P > 0.995 ? L.p1 : fill(L.pLow, { p: n3(pf.P), a: money(tot.ahead), b: money(tot.behind) });
-      container.append(K.step(3, L.s3, [
+      container.append(K.step(4, L.s3, [
         K.p(L.s3a),
         K.formulas(L.s3f, pf.P === null ? null : `ES = ${n2(pf.ES)}  →  P = ${money(tot.matched)}/${money(tot.pvEs)} = ${n3(pf.P)}`),
         ctl3,
@@ -259,7 +385,7 @@
         });
       });
 
-      // ---- 4. Incertidumbre
+      // ---- 5. Incertidumbre
       const refs = K.el('ol', 'refs');
       for (const r of root.PCAdvancedText.REFS) {
         const li = K.el('li', null, `${r.text} `);
@@ -268,7 +394,7 @@
         li.append(a);
         refs.append(li);
       }
-      container.append(K.step(4, L.s4, [
+      container.append(K.step(5, L.s4, [
         K.p(L.s4a),
         K.list(L.s4list),
         think(L, L.q4, L.a4),

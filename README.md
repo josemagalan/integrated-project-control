@@ -29,7 +29,7 @@ It runs entirely in the browser, with no build step and no server: open `index.h
 | Earned schedule (ES) | Lipke’s earned schedule: the period C, the interpolation of ES on the PV curve, SV(t), SPI(t) and IEAC(t) with three performance factors |
 | Earned duration (EDM) | Khamooshi and Golafshani’s TPD, TED, ED(t), EDI and DPI, EDAC(t), and a side-by-side comparison of the duration forecasts of the PV method, Jacob’s earned duration, ES and EDM |
 | Comparison over time | All indicators and forecasts week by week for three example projects, with the step-by-step calculation at each status date and the error of each forecast against the actual duration |
-| Going further (advanced) | A separate module for students who already master the basics: which duration forecast is most accurate at each project stage, a critical-path scenario where aggregate indices hide a delay, Lipke’s P-factor (schedule adherence), and an introduction to project control under uncertainty with further reading |
+| Going further (advanced) | A separate module for students who already master the basics: which duration forecast is most accurate at each project stage and whether it errs on the optimistic or pessimistic side, a critical-path scenario where aggregate indices hide a delay, a decision lab (where to spend to recover a week), Lipke’s P-factor (schedule adherence), and an introduction to project control under uncertainty with further reading |
 
 ## Features
 
